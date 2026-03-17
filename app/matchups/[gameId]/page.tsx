@@ -210,11 +210,11 @@ export default async function MatchupPage({
       </div>
 
       {/* Header: Teams with Win Probability */}
-      <div className="mb-8 rounded-[var(--radius-lg)] border border-border-subtle bg-bg-surface p-6">
-        <div className="flex items-center justify-between gap-4">
+      <div className="mb-8 rounded-[var(--radius-lg)] border border-border-subtle bg-bg-surface p-4 sm:p-6">
+        <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between sm:gap-4">
           <div className="flex-1 text-center">
             {team1 ? (
-              <TeamBadge team={team1} size="lg" showRecord />
+              <TeamBadge team={team1} size="lg" showRecord centered />
             ) : (
               <p className="text-text-muted">TBD</p>
             )}
@@ -255,7 +255,7 @@ export default async function MatchupPage({
 
           <div className="flex-1 text-center">
             {team2 ? (
-              <TeamBadge team={team2} size="lg" showRecord />
+              <TeamBadge team={team2} size="lg" showRecord centered />
             ) : (
               <p className="text-text-muted">TBD</p>
             )}

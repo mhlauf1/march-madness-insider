@@ -7,6 +7,7 @@ interface TeamBadgeProps {
   size?: "sm" | "md" | "lg";
   showSeed?: boolean;
   showRecord?: boolean;
+  centered?: boolean;
 }
 
 const sizes = {
@@ -20,8 +21,38 @@ export function TeamBadge({
   size = "md",
   showSeed = true,
   showRecord = false,
+  centered = false,
 }: TeamBadgeProps) {
   const s = sizes[size];
+
+  if (centered) {
+    return (
+      <div className="flex flex-col items-center gap-1.5">
+        {team.logo_url && (
+          <Image
+            src={team.logo_url}
+            alt={team.name}
+            width={s.logo}
+            height={s.logo}
+            className="shrink-0"
+          />
+        )}
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
+          {showSeed && (
+            <span className="font-mono text-xs text-text-muted">
+              ({team.seed})
+            </span>
+          )}
+          <span className={`font-semibold ${s.text}`}>{team.name}</span>
+        </div>
+        {showRecord && team.record_wins != null && (
+          <span className="text-xs text-text-muted">
+            {formatRecord(team.record_wins, team.record_losses)}
+          </span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2">
