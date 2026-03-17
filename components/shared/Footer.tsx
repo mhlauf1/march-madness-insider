@@ -9,6 +9,7 @@ export function Footer() {
             <span>Odds: The-Odds-API</span>
           </div>
 
+          <p>Made by Mike with love ❤️</p>
           <p>&copy; {new Date().getFullYear()} BurgerLab</p>
         </div>
       </div>
