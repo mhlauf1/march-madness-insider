@@ -23,7 +23,7 @@ export function Nav() {
   return (
     <>
       <nav className="sticky top-0 z-50 border-b border-border-subtle bg-bg-base backdrop-blur-xl md:bg-bg-base/80">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
+        <div className="mx-auto flex h-14 max-w-400 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-lg font-bold tracking-tight text-text-primary">
               Burger<span className="text-accent-blue">Lab</span>

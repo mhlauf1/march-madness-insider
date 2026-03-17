@@ -191,7 +191,7 @@ export default async function MatchupPage({
       : [];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Round / Venue / Time Info */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <RoundBadge round={game.round} roundName={game.round_name} />

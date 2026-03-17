@@ -1,6 +1,6 @@
-# BracketLab Scrapers
+# BurgerLab Scrapers
 
-Python data collection scripts for the BracketLab tournament database.
+Python data collection scripts for the BurgerLab tournament database.
 
 ## Setup
 

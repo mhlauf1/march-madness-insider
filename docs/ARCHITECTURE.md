@@ -1,4 +1,4 @@
-# BracketLab Architecture
+# BurgerLab Architecture
 
 ## System Overview
 

@@ -1,4 +1,4 @@
--- BracketLab: March Madness 2026 Database Schema
+-- BurgerLab: March Madness 2026 Database Schema
 -- Run this migration against your Supabase project
 
 -- ============================================

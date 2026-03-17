@@ -1,4 +1,4 @@
-# BracketLab — TODO
+# BurgerLab — TODO
 
 ## Data Pipeline
 - [x] Fix ESPN scraper record parsing (use team detail API `record.items[0].summary`)

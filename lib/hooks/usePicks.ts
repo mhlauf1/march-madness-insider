@@ -7,7 +7,7 @@ import { getUserPicks, upsertPick, deletePicksByGameIds, deleteAllPicks } from "
 import { getDownstreamGameIds } from "@/lib/utils/bracket-structure";
 import type { Game } from "@/lib/types";
 
-const LOCAL_STORAGE_KEY = "bracketlab-draft-picks";
+const LOCAL_STORAGE_KEY = "burgerlab-draft-picks";
 
 function readLocalPicks(): Map<string, string> {
   if (typeof window === "undefined") return new Map();

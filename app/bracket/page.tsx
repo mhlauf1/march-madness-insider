@@ -10,7 +10,7 @@ export default async function BracketPage() {
   const games = await getAllGames(supabase);
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-8">
+    <div className="mx-auto max-w-400 px-4 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-text-primary">
           Tournament Bracket

@@ -1,4 +1,4 @@
-# BracketLab
+# BurgerLab
 
 The definitive guide for March Madness 2026 — bracket filling, team analysis, betting intelligence, and tournament tracking.
 

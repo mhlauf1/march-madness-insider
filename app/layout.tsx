@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BracketLab — March Madness 2026",
+  title: "BurgerLab March Madness 2026",
   description:
     "The definitive guide for bracket filling, team analysis, betting intelligence, and tournament tracking for March Madness 2026.",
 };

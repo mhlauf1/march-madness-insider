@@ -44,7 +44,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-400 px-4 py-8">
       {/* Tournament Progress */}
       <div className="mb-8 rounded-[var(--radius-md)] border border-border-subtle bg-bg-surface px-5 py-4">
         <div className="mb-2 flex items-center justify-between text-sm">

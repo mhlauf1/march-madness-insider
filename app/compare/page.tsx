@@ -306,7 +306,7 @@ export default function ComparePage() {
       : null;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-text-primary">
           Compare Teams

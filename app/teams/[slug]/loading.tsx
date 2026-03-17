@@ -1,6 +1,6 @@
 export default function TeamDetailLoading() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-400 px-4 py-8">
       {/* Hero skeleton */}
       <div className="mb-8 rounded-[var(--radius-lg)] border border-border-subtle bg-bg-surface p-6 md:p-10">
         <div className="flex flex-col items-start gap-6 md:flex-row md:items-center">

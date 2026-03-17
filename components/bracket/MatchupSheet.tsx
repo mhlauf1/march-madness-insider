@@ -27,12 +27,15 @@ import type {
   GameWithTeams,
   KenpomRatings,
   Player,
+  Team,
   TeamSeasonStats,
 } from "@/lib/types";
 
 interface MatchupSheetProps {
   game: Game;
   currentPick: string | null;
+  projectedTeam1?: Team;
+  projectedTeam2?: Team;
   onClose: () => void;
 }
 
@@ -159,6 +162,8 @@ function getStartingFive(players: Player[] | undefined): Player[] {
 export function MatchupSheet({
   game,
   currentPick,
+  projectedTeam1,
+  projectedTeam2,
   onClose,
 }: MatchupSheetProps) {
   const [fullGame, setFullGame] = useState<GameWithTeams | null>(null);
@@ -171,14 +176,42 @@ export function MatchupSheet({
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
 
+    const isTBDTeam = (team: GameWithTeams["team1"]) =>
+      !team || team.name === "TBD" || team.seed === 99;
+
+    async function fetchTeamFull(teamId: string) {
+      const { data } = await supabase
+        .from("teams")
+        .select("*, kenpom_ratings(*), kenpom_players(*)")
+        .eq("id", teamId)
+        .single();
+      return data as (Team & { kenpom_ratings: KenpomRatings[]; kenpom_players?: Player[] }) | null;
+    }
+
     async function load() {
       try {
         const g = (await getGameById(supabase, game.id)) as GameWithTeams;
+
+        // If DB teams are TBD but we have projected teams, fetch full team data
+        const t1TBD = isTBDTeam(g.team1);
+        const t2TBD = isTBDTeam(g.team2);
+
+        const [projected1Full, projected2Full] = await Promise.all([
+          t1TBD && projectedTeam1 ? fetchTeamFull(projectedTeam1.id) : null,
+          t2TBD && projectedTeam2 ? fetchTeamFull(projectedTeam2.id) : null,
+        ]);
+
+        if (projected1Full) g.team1 = projected1Full;
+        if (projected2Full) g.team2 = projected2Full;
+
         setFullGame(g);
 
+        const team1Id = g.team1?.id;
+        const team2Id = g.team2?.id;
+
         const [s1, s2] = await Promise.all([
-          g.team1 ? getTeamSeasonStats(supabase, g.team1.id) : null,
-          g.team2 ? getTeamSeasonStats(supabase, g.team2.id) : null,
+          team1Id ? getTeamSeasonStats(supabase, team1Id) : null,
+          team2Id ? getTeamSeasonStats(supabase, team2Id) : null,
         ]);
         setStats1(s1 as TeamSeasonStats | null);
         setStats2(s2 as TeamSeasonStats | null);
@@ -190,7 +223,7 @@ export function MatchupSheet({
     }
 
     load();
-  }, [game.id]);
+  }, [game.id, projectedTeam1?.id, projectedTeam2?.id]);
 
   // Lock body scroll while sheet is open
   useEffect(() => {
@@ -247,7 +280,7 @@ export function MatchupSheet({
 
       {/* Sheet panel */}
       <div
-        className={`flex h-full w-full flex-col bg-bg-base shadow-xl sm:w-[480px] ${
+        className={`flex h-full w-full flex-col bg-bg-base shadow-xl sm:w-[560px] ${
           closing ? "sheet-exit" : "sheet-enter"
         }`}
       >

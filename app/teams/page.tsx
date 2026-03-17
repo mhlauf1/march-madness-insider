@@ -12,7 +12,7 @@ export default async function TeamsPage() {
   const teams = (await getAllTeams(supabase)) as TeamWithRatings[];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-400 px-4 py-8">
       <SectionHeader
         title="All Teams"
         subtitle="68 teams competing in March Madness 2026"

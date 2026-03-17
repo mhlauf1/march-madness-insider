@@ -109,7 +109,7 @@ function GameCard({
   pickedTeamId: string | null;
   projectedTeams?: { team1?: Team; team2?: Team };
   onPickTeam: (game: Game, teamId: string) => void;
-  onViewDetails: (game: Game) => void;
+  onViewDetails: (game: Game, displayedTeams?: { team1?: Team; team2?: Team }) => void;
 }) {
   const isComplete = game.is_completed;
   const isUpset = game.is_upset;
@@ -185,11 +185,11 @@ function GameCard({
       {/* Divider with info button */}
       <div className="flex items-center gap-1 px-2.5">
         <div className="flex-1 border-t border-border-subtle" />
-        {hasRealTeams && (
+        {hasBothTeams && (
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onViewDetails(game);
+              onViewDetails(game, { team1: displayTeam1 ?? undefined, team2: displayTeam2 ?? undefined });
             }}
             className="shrink-0 cursor-pointer rounded p-0.5 text-text-muted transition-colors hover:bg-bg-hover hover:text-text-secondary"
             aria-label="View matchup details"
@@ -273,7 +273,7 @@ function RegionColumn({
   picks: Map<string, string>;
   projections: Map<string, { team1?: Team; team2?: Team }>;
   onPickTeam: (game: Game, teamId: string) => void;
-  onViewDetails: (game: Game) => void;
+  onViewDetails: (game: Game, displayedTeams?: { team1?: Team; team2?: Team }) => void;
 }) {
   const filtered = games
     .filter((g) => g.round === round && g.region === region)
@@ -314,7 +314,7 @@ function DesktopBracket({
   picks: Map<string, string>;
   projections: Map<string, { team1?: Team; team2?: Team }>;
   onPickTeam: (game: Game, teamId: string) => void;
-  onViewDetails: (game: Game) => void;
+  onViewDetails: (game: Game, displayedTeams?: { team1?: Team; team2?: Team }) => void;
 }) {
   const finalFourGames = games.filter((g) => g.round === 5);
   const championshipGames = games.filter((g) => g.round === 6);
@@ -346,7 +346,7 @@ function DesktopBracket({
         className="grid gap-x-2"
         style={{
           gridTemplateColumns:
-            "1fr 1fr 1fr 1fr minmax(140px, 1fr) 1fr 1fr 1fr 1fr",
+            "minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(140px, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)",
         }}
       >
         {/* Column headers */}
@@ -481,7 +481,7 @@ function MobileRounds({
   picks: Map<string, string>;
   projections: Map<string, { team1?: Team; team2?: Team }>;
   onPickTeam: (game: Game, teamId: string) => void;
-  onViewDetails: (game: Game) => void;
+  onViewDetails: (game: Game, displayedTeams?: { team1?: Team; team2?: Team }) => void;
 }) {
   const [activeRound, setActiveRound] = useState<number>(() => {
     const incomplete = games.filter((g) => !g.is_completed);
@@ -580,6 +580,7 @@ function MobileRounds({
 export function BracketView({ games }: BracketViewProps) {
   const [view, setView] = useState<"bracket" | "rounds">("bracket");
   const [sheetGame, setSheetGame] = useState<Game | null>(null);
+  const [sheetProjectedTeams, setSheetProjectedTeams] = useState<{ team1?: Team; team2?: Team } | undefined>(undefined);
   const [showAuthBanner, setShowAuthBanner] = useState(false);
   const [authBannerDismissed, setAuthBannerDismissed] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -604,8 +605,9 @@ export function BracketView({ games }: BracketViewProps) {
     }
   }
 
-  function handleViewDetails(game: Game) {
+  function handleViewDetails(game: Game, displayedTeams?: { team1?: Team; team2?: Team }) {
     setSheetGame(game);
+    setSheetProjectedTeams(displayedTeams);
   }
 
   return (
@@ -730,7 +732,9 @@ export function BracketView({ games }: BracketViewProps) {
         <MatchupSheet
           game={sheetGame}
           currentPick={picks.get(sheetGame.id) ?? null}
-          onClose={() => setSheetGame(null)}
+          projectedTeam1={sheetProjectedTeams?.team1}
+          projectedTeam2={sheetProjectedTeams?.team2}
+          onClose={() => { setSheetGame(null); setSheetProjectedTeams(undefined); }}
         />
       )}
 

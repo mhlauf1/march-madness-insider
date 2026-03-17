@@ -1,4 +1,4 @@
-# BracketLab — Project Status
+# BurgerLab — Project Status
 
 ## Completed
 

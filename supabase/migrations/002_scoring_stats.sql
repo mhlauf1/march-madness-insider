@@ -1,4 +1,4 @@
--- BracketLab: Scoring Stats Tables
+-- BurgerLab: Scoring Stats Tables
 -- Team season averages and per-game half scoring data
 
 -- ============================================

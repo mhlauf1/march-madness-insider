@@ -4,7 +4,7 @@
 
 A public-facing, production-grade March Madness web application for the 2026 NCAA Men's Basketball Tournament. The app serves as the definitive guide for bracket filling, team analysis, betting intelligence, and tournament tracking. Anyone with the link can use it. Designed to be shared among friends and used throughout the entire tournament (March 17 – April 6, 2026).
 
-**Project name:** `bracketlab` (use this as the repo name and app identity)
+**Project name:** `burgerlab` (use this as the repo name and app identity)
 **URL:** Deploy to Vercel, custom domain optional
 
 ---
@@ -33,7 +33,7 @@ A public-facing, production-grade March Madness web application for the 2026 NCA
 ## Repository Structure
 
 ```
-bracketlab/
+burgerlab/
 ├── apps/
 │   └── web/                        # Next.js app
 │       ├── app/

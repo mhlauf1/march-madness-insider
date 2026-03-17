@@ -1,6 +1,6 @@
 export default function MatchupLoading() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Round badge skeleton */}
       <div className="mb-6 flex gap-3">
         <div className="h-6 w-24 animate-pulse rounded-full bg-bg-elevated" />

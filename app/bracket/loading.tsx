@@ -1,6 +1,6 @@
 export default function BracketLoading() {
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-8">
+    <div className="mx-auto max-w-400 px-4 py-8">
       {/* Header skeleton */}
       <div className="mb-8">
         <div className="h-8 w-64 animate-pulse rounded-[var(--radius-sm)] bg-bg-surface" />

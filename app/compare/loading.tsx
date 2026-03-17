@@ -1,6 +1,6 @@
 export default function CompareLoading() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Header skeleton */}
       <div className="mb-8">
         <div className="h-7 w-44 animate-pulse rounded bg-bg-elevated" />

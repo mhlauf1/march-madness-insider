@@ -11,7 +11,7 @@ export default async function StatsPage() {
   const teams = await getAllTeamsWithFullStats(supabase);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-400 px-4 py-8">
       <SectionHeader
         title="Stats Explorer"
         subtitle="Deep statistical breakdowns for all 68 tournament teams"
