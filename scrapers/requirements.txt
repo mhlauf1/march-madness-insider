@@ -1,0 +1,7 @@
+supabase>=2.3.0
+kenpompy>=0.3.5
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+pandas>=2.1.4
+python-dotenv>=1.0.0
+geopy>=2.4.1
