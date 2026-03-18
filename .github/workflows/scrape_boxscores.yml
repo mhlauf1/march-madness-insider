@@ -1,7 +1,5 @@
 name: Scrape ESPN Box Scores
 on:
-  schedule:
-    - cron: "0 12 * * *" # 7 AM ET (noon UTC)
   workflow_dispatch:
 
 jobs:

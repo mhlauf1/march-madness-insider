@@ -7,6 +7,7 @@ Schedule: Daily at 6:00 AM ET.
 import os
 import sys
 import logging
+import argparse
 import difflib
 from dotenv import load_dotenv
 from supabase import create_client
@@ -26,6 +27,18 @@ SEASON = 2026
 # KenPom name -> DB name for teams that can't be fuzzy-matched
 KENPOM_NAME_ALIASES = {
     "Connecticut": "UConn",
+    "Ohio St.": "Ohio State",
+    "Michigan St.": "Michigan State",
+    "Mississippi St.": "Mississippi State",
+    "Miami FL": "Miami",
+    "N.C. State": "NC State",
+    "Saint Mary's": "Saint Mary's",
+    "SIU Edwardsville": "SIU Edwardsville",
+    "UC San Diego": "UC San Diego",
+    "North Carolina A&T": None,  # Prevent fuzzy match to "North Carolina"
+    "Texas A&M": "Texas A&M",
+    "Prairie View A&M": "Prairie View",
+    "LIU": "Long Island",
 }
 
 # KenPom uses abbreviated conference names; map them to the full names used by ESPN
@@ -67,25 +80,47 @@ KENPOM_CONF_MAP = {
 
 
 def normalize_name(name: str) -> str:
-    return name.lower().strip().replace(".", "").replace("'", "").replace("-", " ").replace("st.", "st")
+    name = name.lower().strip().replace(".", "").replace("'", "").replace("-", " ")
+    # Expand trailing "St" to "State" so "Ohio St" -> "ohio state"
+    if name.endswith(" st"):
+        name = name[:-3] + " state"
+    return name
 
 
-def match_team_name(kenpom_name: str, team_names: list[str]) -> str | None:
+def match_team_name(kenpom_name: str, team_names: list[str], match_method: dict | None = None) -> str | None:
+    """Match a KenPom team name to a DB team name.
+    If match_method dict is provided, it will be updated with the method used."""
     # Check alias map first
-    alias = KENPOM_NAME_ALIASES.get(kenpom_name)
-    if alias and alias in team_names:
-        return alias
+    if kenpom_name in KENPOM_NAME_ALIASES:
+        alias = KENPOM_NAME_ALIASES[kenpom_name]
+        if alias is None:
+            return None  # Explicitly blocked from matching
+        if alias in team_names:
+            if match_method is not None:
+                match_method["method"] = "alias"
+            return alias
 
     normalized = normalize_name(kenpom_name)
     for tn in team_names:
         if normalize_name(tn) == normalized:
+            if match_method is not None:
+                match_method["method"] = "exact"
             return tn
 
     matches = difflib.get_close_matches(normalized, [normalize_name(t) for t in team_names], n=1, cutoff=0.85)
     if matches:
         for tn in team_names:
             if normalize_name(tn) == matches[0]:
+                if match_method is not None:
+                    match_method["method"] = "fuzzy"
                 return tn
+
+    # Log best fuzzy match even below cutoff for diagnostics
+    close = difflib.get_close_matches(normalized, [normalize_name(t) for t in team_names], n=1, cutoff=0.5)
+    if close:
+        logger.debug(f"No match for '{kenpom_name}' (normalized: '{normalized}'). Best candidate: '{close[0]}'")
+    else:
+        logger.debug(f"No match for '{kenpom_name}' (normalized: '{normalized}'). No candidates found.")
 
     return None
 
@@ -235,8 +270,7 @@ def _parse_made(made_attempted: str) -> int | None:
 
 
 def _parse_team_players(html: str) -> list[dict]:
-    """Parse player stats from a KenPom team page HTML."""
-    import re
+    """Parse player stats from a KenPom team page HTML using header-based column lookup."""
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(html, "html.parser")
@@ -245,6 +279,37 @@ def _parse_team_players(html: str) -> list[dict]:
         return []
 
     player_table = tables[2]
+
+    # Build header index from the first row
+    header_row = player_table.find("tr")
+    if not header_row:
+        return []
+
+    headers = []
+    for cell in header_row.find_all(["th", "td"]):
+        headers.append(cell.get_text(strip=True).lower())
+
+    def col_idx(name: str) -> int | None:
+        name = name.lower()
+        for i, h in enumerate(headers):
+            if h == name:
+                return i
+        return None
+
+    # Map expected column names
+    idx_name = col_idx("name") if col_idx("name") is not None else 1
+    idx_hgt = col_idx("hgt") if col_idx("hgt") is not None else col_idx("height")
+    idx_yr = col_idx("yr") if col_idx("yr") is not None else col_idx("year")
+    idx_gp = col_idx("gp") if col_idx("gp") is not None else col_idx("g")
+    idx_min_pct = col_idx("min%") if col_idx("min%") is not None else col_idx("mpg")
+    idx_ortg = col_idx("ortg") if col_idx("ortg") is not None else col_idx("off. rtg")
+    idx_usg = col_idx("usg") if col_idx("usg") is not None else col_idx("%poss")
+    idx_efg = col_idx("efg%") if col_idx("efg%") is not None else col_idx("efg")
+    idx_ts = col_idx("ts%") if col_idx("ts%") is not None else col_idx("ts")
+    idx_ftm = col_idx("ft") if col_idx("ft") is not None else None
+    idx_2pm = col_idx("2p") if col_idx("2p") is not None else None
+    idx_3pm = col_idx("3p") if col_idx("3p") is not None else None
+
     players = []
 
     for row in player_table.find_all("tr")[1:]:
@@ -259,40 +324,47 @@ def _parse_team_players(html: str) -> list[dict]:
             for span in cell.find_all("span", class_="kpoy"):
                 span.decompose()
 
-        name_tag = cells[1].find("a")
-        name = name_tag.get_text(strip=True) if name_tag else cells[1].get_text(strip=True)
+        def cell_text(idx):
+            if idx is not None and idx < len(cells):
+                return cells[idx].get_text(strip=True)
+            return ""
+
+        name_cell = cells[idx_name] if idx_name < len(cells) else None
+        if not name_cell:
+            continue
+        name_tag = name_cell.find("a")
+        name = name_tag.get_text(strip=True) if name_tag else name_cell.get_text(strip=True)
         if not name:
             continue
 
-        min_pct = _safe_float(cells[7].get_text(strip=True))
-        games = _safe_float(cells[5].get_text(strip=True))
+        min_pct = _safe_float(cell_text(idx_min_pct))
+        games = _safe_float(cell_text(idx_gp))
 
         # Compute PPG from made field goals and free throws
-        # Columns: [22] FTM-A, [24] 2PM-A, [26] 3PM-A
         ppg = None
-        if games and games > 0 and len(cells) >= 27:
-            ftm = _parse_made(cells[22].get_text(strip=True))
-            twos = _parse_made(cells[24].get_text(strip=True))
-            threes = _parse_made(cells[26].get_text(strip=True))
+        if games and games > 0 and idx_ftm is not None and idx_2pm is not None and idx_3pm is not None:
+            ftm = _parse_made(cell_text(idx_ftm))
+            twos = _parse_made(cell_text(idx_2pm))
+            threes = _parse_made(cell_text(idx_3pm))
             if ftm is not None and twos is not None and threes is not None:
                 ppg = round((twos * 2 + threes * 3 + ftm) / games, 1)
 
         players.append({
             "name": name,
-            "height": cells[2].get_text(strip=True),
-            "year_class": cells[4].get_text(strip=True),
+            "height": cell_text(idx_hgt),
+            "year_class": cell_text(idx_yr),
             "minutes_pct": min_pct,
             "ppg": ppg,
-            "off_rtg": _safe_float(cells[8].get_text(strip=True)),
-            "usg_pct": _safe_float(cells[9].get_text(strip=True)),
-            "efg_pct": _safe_float(cells[11].get_text(strip=True)),
-            "ts_pct": _safe_float(cells[12].get_text(strip=True)),
+            "off_rtg": _safe_float(cell_text(idx_ortg)),
+            "usg_pct": _safe_float(cell_text(idx_usg)),
+            "efg_pct": _safe_float(cell_text(idx_efg)),
+            "ts_pct": _safe_float(cell_text(idx_ts)),
         })
 
     return players
 
 
-def scrape_players(supabase):
+def scrape_players(supabase, single_team: str | None = None):
     from kenpompy.utils import login
     from kenpompy.team import get_valid_teams
     import time
@@ -305,26 +377,44 @@ def scrape_players(supabase):
     all_names = list(db_teams.keys()) + list(db_teams_full.keys())
 
     kp_teams = get_valid_teams(browser)
+
+    # Filter to single team if requested
+    if single_team:
+        kp_teams = [t for t in kp_teams if single_team.lower() in t.lower()]
+        if not kp_teams:
+            logger.error(f"No KenPom team matching '{single_team}' found.")
+            return
+        logger.info(f"Filtering to {len(kp_teams)} team(s) matching '{single_team}'")
+
     updated = 0
+    unmatched = []
+    parse_failures = []
 
     for kp_name in kp_teams:
         matched = match_team_name(kp_name, all_names)
         if not matched:
+            unmatched.append(kp_name)
             continue
         team_id = db_teams.get(matched) or db_teams_full.get(matched)
         if not team_id:
+            unmatched.append(kp_name)
             continue
 
         try:
+            from urllib.parse import quote
+            encoded_name = quote(kp_name, safe='')
             resp = browser.get(
-                f"https://kenpom.com/team.php?team={kp_name.replace(' ', '+')}"
+                f"https://kenpom.com/team.php?team={encoded_name}"
             )
             players = _parse_team_players(resp.text)
         except Exception as e:
             logger.warning(f"Failed to fetch players for {kp_name}: {e}")
+            parse_failures.append(kp_name)
             continue
 
         if not players:
+            logger.debug(f"Matched '{kp_name}' -> '{matched}' but parsed 0 players from HTML")
+            parse_failures.append(kp_name)
             continue
 
         # Top 10 by minutes
@@ -336,10 +426,16 @@ def scrape_players(supabase):
             players[:10], on_conflict="team_id,season,name"
         ).execute()
         updated += 1
+        logger.debug(f"Updated {len(players[:10])} players for {kp_name} -> {matched}")
 
         time.sleep(0.5)  # rate-limit requests
 
+    # Summary
     logger.info(f"Updated players for {updated} teams.")
+    if unmatched:
+        logger.warning(f"{len(unmatched)} unmatched KenPom teams: {unmatched[:20]}")
+    if parse_failures:
+        logger.warning(f"{len(parse_failures)} teams with parse failures: {parse_failures[:20]}")
 
 
 def scrape_program_history(supabase):
@@ -427,10 +523,24 @@ def _safe_int(val) -> int | None:
 
 
 def main():
+    parser = argparse.ArgumentParser(description="KenPom Analytics Scraper")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable DEBUG-level logging")
+    parser.add_argument("--players-only", action="store_true", help="Only scrape player data (skip ratings/history)")
+    parser.add_argument("--team", type=str, default=None, help="Scrape a single team by name (for testing)")
+    args = parser.parse_args()
+
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
+
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-    scrape_ratings(supabase)
-    scrape_players(supabase)
-    scrape_program_history(supabase)
+
+    if args.players_only:
+        scrape_players(supabase, single_team=args.team)
+    else:
+        scrape_ratings(supabase)
+        scrape_players(supabase, single_team=args.team)
+        scrape_program_history(supabase)
 
 
 if __name__ == "__main__":

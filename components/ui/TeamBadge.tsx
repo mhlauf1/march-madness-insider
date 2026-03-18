@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { Team } from "@/lib/types";
 import { formatRecord } from "@/lib/utils/format";
 
@@ -8,6 +9,7 @@ interface TeamBadgeProps {
   showSeed?: boolean;
   showRecord?: boolean;
   centered?: boolean;
+  linkToTeam?: boolean;
 }
 
 const sizes = {
@@ -22,12 +24,23 @@ export function TeamBadge({
   showSeed = true,
   showRecord = false,
   centered = false,
+  linkToTeam = false,
 }: TeamBadgeProps) {
   const s = sizes[size];
 
+  const Wrapper = linkToTeam && team.slug
+    ? ({ children, className }: { children: React.ReactNode; className?: string }) => (
+        <Link href={`/teams/${team.slug}`} className={`${className ?? ""} transition-opacity hover:opacity-75`}>
+          {children}
+        </Link>
+      )
+    : ({ children, className }: { children: React.ReactNode; className?: string }) => (
+        <div className={className}>{children}</div>
+      );
+
   if (centered) {
     return (
-      <div className="flex flex-col items-center gap-1.5">
+      <Wrapper className="flex flex-col items-center gap-1.5">
         {team.logo_url && (
           <Image
             src={team.logo_url}
@@ -50,12 +63,12 @@ export function TeamBadge({
             {formatRecord(team.record_wins, team.record_losses)}
           </span>
         )}
-      </div>
+      </Wrapper>
     );
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <Wrapper className="flex items-center gap-2">
       {team.logo_url && (
         <Image
           src={team.logo_url}
@@ -78,6 +91,6 @@ export function TeamBadge({
           </span>
         )}
       </div>
-    </div>
+    </Wrapper>
   );
 }

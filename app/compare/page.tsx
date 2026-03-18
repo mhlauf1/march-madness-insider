@@ -135,8 +135,8 @@ function buildComparison(
         },
         {
           label: "Tempo",
-          team1Val: formatEfficiency(r1.adj_t),
-          team2Val: formatEfficiency(r2.adj_t),
+          team1Val: `${formatEfficiency(r1.adj_t)}${r1.adj_t_rank != null ? ` (${formatRank(r1.adj_t_rank)} of 364)` : ""}`,
+          team2Val: `${formatEfficiency(r2.adj_t)}${r2.adj_t_rank != null ? ` (${formatRank(r2.adj_t_rank)} of 364)` : ""}`,
           team1Better: (r1.adj_t ?? 0) > (r2.adj_t ?? 0),
         },
       ],

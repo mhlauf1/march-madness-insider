@@ -214,7 +214,7 @@ export default async function MatchupPage({
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between sm:gap-4">
           <div className="flex-1 text-center">
             {team1 ? (
-              <TeamBadge team={team1} size="lg" showRecord centered />
+              <TeamBadge team={team1} size="lg" showRecord centered linkToTeam />
             ) : (
               <p className="text-text-muted">TBD</p>
             )}
@@ -255,7 +255,7 @@ export default async function MatchupPage({
 
           <div className="flex-1 text-center">
             {team2 ? (
-              <TeamBadge team={team2} size="lg" showRecord centered />
+              <TeamBadge team={team2} size="lg" showRecord centered linkToTeam />
             ) : (
               <p className="text-text-muted">TBD</p>
             )}

@@ -1,7 +1,5 @@
 name: Scrape KenPom Data
 on:
-  schedule:
-    - cron: "0 11 * * *"
   workflow_dispatch:
 
 jobs:

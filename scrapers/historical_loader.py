@@ -148,6 +148,7 @@ NCAA_HISTORY = {
     "Texas": {"ncaa_titles": 0, "tournament_appearances": 37, "last_title_year": None},
     "Alabama": {"ncaa_titles": 0, "tournament_appearances": 13, "last_title_year": None},
     "Arkansas": {"ncaa_titles": 1, "tournament_appearances": 35, "last_title_year": 1994},
+    "Ohio State": {"ncaa_titles": 1, "tournament_appearances": 12, "last_title_year": 1960},
 }
 
 
